@@ -29,9 +29,12 @@ LDFLAGS += -lluajit
 SOURCES = $(shell find $(SRCDIR) -name "*.c")
 OBJECTS = $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(SOURCES))
 
-.PHONY: all clean run
+.PHONY: all clean run copy_scripts
 
-all: $(BINDIR) $(OBJDIR) $(BINDIR)/$(TARGET)
+copy_scripts:
+	cp -r scripts $(BINDIR)/
+
+all: $(BINDIR) $(OBJDIR) $(BINDIR)/$(TARGET) copy_scripts
 
 $(BINDIR)/$(TARGET): $(OBJECTS)
 	$(CC) $(OBJECTS) -o $@ $(LDFLAGS)
