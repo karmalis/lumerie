@@ -153,7 +153,7 @@ void ptable_delete(PTable* table, size_t pos, size_t len) {
         size_t c_start = cursor_doc_offset;
         size_t c_end = cursor_doc_offset + cursor.length;
 
-        printf("pos: %zu pos_end: %zu c_start: %zu c_end: %zu\n", pos, pos_end, c_start, c_end);
+        //printf("pos: %zu pos_end: %zu c_start: %zu c_end: %zu\n", pos, pos_end, c_start, c_end);
         if (pos_end <= c_start) {
             /// Include
             // N: |----|
