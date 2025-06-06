@@ -52,8 +52,8 @@ typedef void (*void_func_ptr)(void);
 #define Statement(s) do {s} while(0)
 
 #define flush fflush(stdout)
-#define _v_trace Statement(printf("%s:%d: Trace\n", FILE_NAME, __LINE__); flush;)
-#define unreachable Statement(printf("How did we get here? In %s:d\n", FILE_NAME, __LINE__); flush;)
+#define _v_trace statement(printf("%s:%d: Trace\n", FILE_NAME, __LINE__); flush;)
+#define unreachable statement(printf("How did we get here? In %s:d\n", FILE_NAME, __LINE__); flush;)
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__)
 #error "Codebase supports only linux"
@@ -95,12 +95,12 @@ typedef void (*void_func_ptr)(void);
 #define reverse_clamp(val, min, max) (MIN((min), MAX((val), (max))))
 #define wrap(a,x,b) reverse_clamp(a,x,b)
 
-#define swap(a, b, type) Statement(type temp = (a); (a) = (b); (b) = temp;)
+#define swap(a, b, type) statement(type temp = (a); (a) = (b); (b) = temp;)
 
 #define unused(x) (void)(x)
 
 #if defined(_DEBUG)
-#define assert_that(c, format, ...) Statement(           \
+#define assert_that(c, format, ...) statement(           \
     if(!(c)){                                           \
     printf("%s:%d: Error: ", FILE_NAME, __LINE__);      \
     printf("Assertion Failure: ");                      \
@@ -110,11 +110,11 @@ typedef void (*void_func_ptr)(void);
 }                                                       \
 )
 #else
-#define assert_that(c, format, ...) Statement()
+#define assert_that(c, format, ...) statement()
 #endif
 
 #define error_print(msg, ...) fprintf(stderr, "ERROR: %s:%d: " msg "\n", __FILE__, __LINE__, ##__VA_ARGS__)
-#define fatal_msg(msg, ...) Statement ( error_print(msg, ##__VA_ARGS__);  exit(EXIT_FAILURE);)
+#define fatal_msg(msg, ...) statement ( error_print(msg, ##__VA_ARGS__);  exit(EXIT_FAILURE);)
 
 #define set_bit(val, bit)       ((val) |= (1ULL << (bit)))
 #define clear_bit(val, bit)     ((val) &= ~(1ULL << (bit)))
@@ -135,7 +135,7 @@ typedef void (*void_func_ptr)(void);
 #define memory_zero(d,z) memset((d), 0, (z))
 #define memory_zero_struct(d,z) memory_zero((d), sizeof(s))
 
-#define slice_prototype(type) typedef struct type##_slice { type* elems; u32 len; } type##_slice;
+#define slice_prototype(type) typedef struct type##_slice { type* elems; unsigned int len; } type##_slice;
 #define slice(type) type##_slice
 
 #define iterate(array, var) for (int var = 0; var < array.len; var++)

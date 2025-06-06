@@ -7,7 +7,6 @@
 #define _BSD_SOURCE
 #define _GNU_SOURCE
 
-#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -18,8 +17,10 @@
 
 /* Defines */
 #define EDITOR_VERSION "0.0.1"
-
+#define EDITOR_BUFFER_MAX_SIZE 1024
 #define CTRL_KEY(k) ((k) & 0x1f)
+
+slice_prototype(char);
 
 enum editor_key {
 ARROW_LEFT = 1000,
@@ -48,8 +49,11 @@ struct terminal_config {
     int32_t screen_rows;
     int32_t screen_cols;
     int32_t numrows;
-    struct erow row;
     struct termios orig_termios;
+
+    slice(char) add_buffer;
+
+    PTable* ptable_buffer;
 };
 
 struct terminal_config t_config;
@@ -174,25 +178,22 @@ int32_t terminal_open(const char* filename) {
     FILE* fp = fopen(filename, "r");
     if (!fp) return -1;
 
-    char* line = NULL;
-    size_t linecap = 0;
-    int32_t linelen = getline(&line, &linecap, fp);
-    if (linelen != -1) {
-        while (linelen > 0 && (line[linelen - 1] == '\n' ||
-                               line[linelen - 1] == '\r'))
-            linelen--;
+    fseek(fp, 0L, SEEK_END);
+    size_t filesize = ftell(fp);
+    fseek(fp, 0L, SEEK_SET);
 
-        t_config.row.size = linelen;
-        t_config.row.chars = malloc(linelen + 1);
-        memcpy(t_config.row.chars, line, linelen);
-        t_config.row.chars[linelen] = '\0';
-        t_config.numrows = 1;
-    }
+    char* filebuffer = malloc(sizeof(char) * filesize + 1);
+    if (filebuffer == NULL) return -1;
 
-    free(line);
+    size_t result = fread(filebuffer, 1, filesize, fp);
+    if (result != filesize) return -2;
+
     fclose(fp);
 
-    return linelen;
+    filebuffer[filesize] = '\0';
+    t_config.ptable_buffer = ptable_create(filebuffer);
+
+    return (int32_t) filesize;
 }
 
 /* append buffer / temp buffer / pre piece table */
@@ -327,6 +328,10 @@ void terminal_init() {
     t_config.c_params.x = 0;
     t_config.c_params.y = 0;
     t_config.numrows = 0;
+    t_config.ptable_buffer = NULL;
+
+    t_config.add_buffer.elems = malloc(sizeof(char) * EDITOR_BUFFER_MAX_SIZE);
+    t_config.add_buffer.len = EDITOR_BUFFER_MAX_SIZE;
 
     if (get_window_size(&t_config.screen_rows, &t_config.screen_cols) == -1) critical_die("get_window_size");
 }

@@ -1,5 +1,7 @@
  #include "ptable.h"
 
+#include "../base/base.h"
+
 #include <stdint.h>
 #include <string.h>
 #include <assert.h>
@@ -12,9 +14,9 @@
 
 
 
-PTable ptable_create(const char* buff) {
+PTable* ptable_create(const char* buff) {
     size_t len = strlen(buff);
-    const PTableCBuffer original = { .buffer = (char* ) buff, .size = len, .offset = len - 1 };
+    PTableCBuffer original = { .buffer = (char* ) buff, .size = len, .offset = len - 1 };
 
     char* a_buff = malloc(sizeof(char) * PTABLE_INIT_ADD_SIZE);
     PTableCBuffer addition = { .buffer = a_buff, .size = PTABLE_INIT_ADD_SIZE, .offset = 0 };
@@ -24,7 +26,12 @@ PTable ptable_create(const char* buff) {
     PTableNode* nodes = malloc(sizeof(PTableNode) * PTABLE_INIT_NODE_SIZE);
     nodes[0] = first;
 
-    PTable table = { .nodes = nodes, .node_count = 1, .original = original, .add = addition};
+    PTable* table = malloc(sizeof(PTable));
+    table->nodes = nodes;
+    table->node_count = 1;
+    table->original = original;
+    table->add = addition;
+
     return table;
 }
 
@@ -236,6 +243,28 @@ size_t ptable_get_length(PTable* table) {
     return result;
 }
 
+char* ptable_full_buffer(PTable* table) {
+    size_t table_buffer_size = ptable_get_length(table);
+    char* buffer = malloc(sizeof(char) * table_buffer_size + 1);
+    for (size_t i = 0; i < table->node_count; i++) {
+        PTableNode* cursor = &table->nodes[i];
+
+        char* buf = NULL;
+        switch (cursor->node_type) {
+            case ORIGINAL: {
+                buf = table->original.buffer;
+            } break;
+            case ADDITION: {
+                buf = table->add.buffer;
+            } break;
+        }
+        memcpy(buffer + cursor->start, buf, sizeof(char) * cursor->length);
+    }
+
+    buffer[table_buffer_size] = '\0';
+
+    return buffer;
+}
 
 void ptable_print(PTable* table) {
     for (size_t i = 0; i < table->node_count; i++) {

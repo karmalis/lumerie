@@ -30,7 +30,7 @@ typedef struct table_node {
 } PTableNode;
 
 typedef struct piece_table {
-    const PTableCBuffer original;
+    PTableCBuffer original;
     PTableCBuffer add;
     PTableNode* nodes;
     size_t node_count;
@@ -38,11 +38,14 @@ typedef struct piece_table {
 
 // PTable manipulation
 
-PTable ptable_create(const char*);
+PTable* ptable_create(const char*);
 void ptable_insert(PTable* table, size_t pos, const char* text);
 char ptable_index(PTable* table, size_t at);
 void ptable_delete(PTable* table, size_t at, size_t len);
 void ptable_release(PTable* table);
+
+// buffer views
+char* ptable_full_buffer(PTable* table);
 
 // Helpers and utils
 void ptable_print(PTable* table);
